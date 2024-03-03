@@ -37,13 +37,19 @@ func (app *application) vlogView(w http.ResponseWriter, r *http.Request) {
 
 }
 func (app *application) vlogCreate(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.Header().Set("Allow", http.MethodPost)
-		app.clientError(w, http.StatusMethodNotAllowed) // Use the clientError() helper.
-		return
-		}
-		w.Write([]byte("Create a new vlog..."))
+    if r.Method != http.MethodPost {
+        w.Header().Set("Allow", http.MethodPost)
+        app.clientError(w, http.StatusMethodNotAllowed) // Use the clientError() helper.
+        return
+    }
+
+    // Assuming a form field "fileType" is sent specifying whether it's a video or image
+    fileType := r.FormValue("fileType")
+
+    // Call the uploadFile function with the appropriate file type
+    uploadFile(w, r, fileType)
 }
+
 func (app *application) vlogUpdate(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("update functionality"))
 }
