@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/abefiker/go_vlog_app/internal/models"
 	"github.com/julienschmidt/httprouter"
@@ -71,6 +73,25 @@ func (app *application) vlogCreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer file.Close()
+	fieldErrors := make(map[string]string)
+	// Check that the title value is not blank and is not more than 100
+	// characters long. If it fails either of those checks, add a message to the
+	// errors map using the field name as the key.
+	if strings.TrimSpace(title) == "" {
+		fieldErrors["title"] = "This field cannot be blank"
+	} else if utf8.RuneCountInString(title) > 100 {
+		fieldErrors["title"] = "This field cannot be more than 100 characters long"
+	}
+	// Check that the Content value isn't blank.
+	if strings.TrimSpace(description) == "" {
+		fieldErrors["description"] = "This field cannot be blank"
+	}
+	if header.Size == 0 {
+		fieldErrors["file"] = "This field cannot be blank"
+		// Optionally handle the error or return a response to the user
+		return
+	}
+	
 
 	// Create a unique file name for the uploaded file
 	// For simplicity, just using the original filename here. Consider generating a unique name.
