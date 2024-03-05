@@ -13,5 +13,5 @@ func (app *application) routes() http.Handler{
 	mux.HandleFunc("/vlog/create", app.vlogCreate)
 	mux.HandleFunc("/vlog/update", app.vlogUpdate)
 	mux.HandleFunc("/vlog/delete", app.vlogDelete)
-	return secureHeaders(mux)
+	return app.logRequest(secureHeaders(mux)) 
 }
