@@ -7,21 +7,15 @@ import (
 	"strconv"
 
 	"github.com/abefiker/go_vlog_app/internal/models"
+	"github.com/julienschmidt/httprouter"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		app.notFound(w)
-		return
-	}
 	vlogs, err := app.vlogs.Latest()
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
-	// for _, vlog := range vlogs {
-	// 	fmt.Fprintf(w, "%+v\n", vlog)
-	// }
 	data := app.newTemplateData(r)
 	data.Vlogs = vlogs
 	// Pass the data to the render() helper as normal.
@@ -29,11 +23,13 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
 }
 func (app *application) vlogView(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	params := httprouter.ParamsFromContext(r.Context())
+	id, err := strconv.Atoi(params.ByName("vlog_id"))
 	if err != nil || id < 1 {
-		app.notFound(w) // Use the notFound() helper.
+		app.notFound(w)
 		return
 	}
+
 	vlog, err := app.vlogs.Get(id)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
@@ -45,15 +41,15 @@ func (app *application) vlogView(w http.ResponseWriter, r *http.Request) {
 	}
 	data := app.newTemplateData(r)
 	data.Vlog = vlog
-	app.render(w, http.StatusOK, "view.html",data)
+	app.render(w, http.StatusOK, "view.html", data)
 
 }
 func (app *application) vlogCreate(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.Header().Set("Allow", http.MethodPost)
-		app.clientError(w, http.StatusMethodNotAllowed) // Use the clientError() helper.
-		return
+	w.Write([]byte("Display the form for creating a new snippet..."))
 	}
+	
+func (app *application) vlogCreatePost(w http.ResponseWriter, r *http.Request) {
+	
 
 	// Assuming a form field "fileType" is sent specifying whether it's a video or image
 	user_id := 1
