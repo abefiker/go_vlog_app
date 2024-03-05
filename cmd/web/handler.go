@@ -26,7 +26,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 }
 func (app *application) vlogView(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())
-	id, err := strconv.Atoi(params.ByName("vlog_id"))
+	id, err := strconv.Atoi(params.ByName("id"))
 	if err != nil || id < 1 {
 		app.notFound(w)
 		return
@@ -76,7 +76,7 @@ func (app *application) vlogCreatePost(w http.ResponseWriter, r *http.Request) {
 	// For simplicity, just using the original filename here. Consider generating a unique name.
 	// Ensure your application saves the file in an appropriate directory with proper permissions
 	photoFileName := header.Filename
-	filePath := "./uploaded_images/" + photoFileName
+	filePath := "./ui/static/img/" + photoFileName
 	out, err := os.Create(filePath)
 	if err != nil {
 		app.serverError(w, err)
@@ -97,7 +97,7 @@ func (app *application) vlogCreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/vlog/view?id=%d", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/vlog/view/%d", id), http.StatusSeeOther)
 }
 
 func (app *application) vlogUpdate(w http.ResponseWriter, r *http.Request) {

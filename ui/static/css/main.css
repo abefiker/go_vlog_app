@@ -323,12 +323,13 @@ footer {
 }
 
 .vlog-card {
-    flex-basis: calc(30% - 20px); /* Adjust the width to occupy approximately one-third of the container */
+    flex-basis: calc(25% - 20px); /* Adjust the width to occupy one-fourth of the container */
     background-color: #FFFFFF;
     border: 1px solid #E4E5E7;
     border-radius: 3px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
+    margin-top: 20px; /* Add margin to the top to lower the containers */
     overflow: hidden;
 }
 
@@ -345,6 +346,7 @@ footer {
 .vlog-details h2 {
     font-size: 16px; /* Adjust the font size as needed */
     margin-bottom: 10px;
+    height: 40px; /* Fixed height for the title container */
     overflow: hidden; /* Hide any overflowing text */
     text-overflow: ellipsis; /* Add ellipsis for truncated text */
     white-space: nowrap; /* Prevent wrapping */
@@ -354,5 +356,4 @@ footer {
     font-size: 14px; /* Adjust the font size as needed */
     color: #6A6C6F;
 }
-
 
