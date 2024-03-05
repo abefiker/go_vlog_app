@@ -1,10 +1,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"html/template"
 	"net/http"
 	"strconv"
-	"text/template"
+
+	"github.com/abefiker/go_vlog_app/internal/models"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
@@ -12,6 +15,14 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w)
 		return
 	}
+	vlogs, err := app.vlogs.Latest()
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	// for _, vlog := range vlogs {
+	// 	fmt.Fprintf(w, "%+v\n", vlog)
+	// }
 	files := []string{
 		"./ui/html/base.html",
 		"./ui/html/partials/nav.html",
@@ -22,7 +33,10 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
-	err = ts.ExecuteTemplate(w, "base", nil)
+	data := &templateData{
+		Vlogs: vlogs,
+	}
+	err = ts.ExecuteTemplate(w, "base", data)
 	if err != nil {
 		app.serverError(w, err)
 	}
@@ -33,21 +47,58 @@ func (app *application) vlogView(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w) // Use the notFound() helper.
 		return
 	}
-	fmt.Fprintf(w, "Display a specific vlog with ID %d...", id)
+	vlog, err := app.vlogs.Get(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			app.notFound(w)
+		} else {
+			app.serverError(w, err)
+		}
+		return
+	}
+
+	files := []string{
+		"./ui/html/base.html",
+		"./ui/html/partials/nav.html",
+		"./ui/html/pages/view.html",
+	}
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	data := &templateData{
+		Vlog: vlog,
+	}
+	err = ts.ExecuteTemplate(w, "base", data)
+	if err != nil {
+		app.serverError(w, err)
+	}
 
 }
 func (app *application) vlogCreate(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodPost {
-        w.Header().Set("Allow", http.MethodPost)
-        app.clientError(w, http.StatusMethodNotAllowed) // Use the clientError() helper.
-        return
-    }
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", http.MethodPost)
+		app.clientError(w, http.StatusMethodNotAllowed) // Use the clientError() helper.
+		return
+	}
 
-    // Assuming a form field "fileType" is sent specifying whether it's a video or image
-    fileType := r.FormValue("fileType")
+	// Assuming a form field "fileType" is sent specifying whether it's a video or image
+	user_id := 1
+	title := "I've played Mafia game"
+	description := "It's interesting and funny game, beside logics and reasoning also some human behavior will be revealed. However, if you don't control yourself you would waste too much time, so that is the bad side of it."
+	photoFile := "love.jpg"
+	views := 0
+	likes := 0
+	id, err := app.vlogs.Insert(user_id, title, description, photoFile, views, likes)
 
-    // Call the uploadFile function with the appropriate file type
-    uploadFile(w, r, fileType)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/vlog/view?id=%d", id), http.StatusSeeOther)
+	// Call the uploadFile function with the appropriate file type
 }
 
 func (app *application) vlogUpdate(w http.ResponseWriter, r *http.Request) {

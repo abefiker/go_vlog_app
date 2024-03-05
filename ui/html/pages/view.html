@@ -1,0 +1,10 @@
+{{ define "title" }}Vlog #{{ .Vlog.VlogID }}{{ end }}
+{{ define "main" }}
+<div class='vlog-card'>
+    <img src='/static/img/{{ .Vlog.PhotoFile }}' alt='Vlog Image' class='vlog-image'>
+    <div class='vlog-details'>
+        <h2>{{ .Vlog.Title }}</h2>
+        <p>{{ .Vlog.Description }}</p>
+    </div>
+</div>
+{{ end }}

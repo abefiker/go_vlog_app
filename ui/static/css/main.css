@@ -311,3 +311,48 @@ footer {
     color: #6A6C6F;
     text-align: center;
 }
+
+
+
+
+/* CSS for vlogs container */
+.vlogs-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.vlog-card {
+    flex-basis: calc(30% - 20px); /* Adjust the width to occupy approximately one-third of the container */
+    background-color: #FFFFFF;
+    border: 1px solid #E4E5E7;
+    border-radius: 3px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.vlog-image {
+    width: 100%; /* Ensure the image fills the container */
+    height: auto;
+    object-fit: cover;
+}
+
+.vlog-details {
+    padding: 20px;
+}
+
+.vlog-details h2 {
+    font-size: 16px; /* Adjust the font size as needed */
+    margin-bottom: 10px;
+    overflow: hidden; /* Hide any overflowing text */
+    text-overflow: ellipsis; /* Add ellipsis for truncated text */
+    white-space: nowrap; /* Prevent wrapping */
+}
+
+.vlog-details p {
+    font-size: 14px; /* Adjust the font size as needed */
+    color: #6A6C6F;
+}
+
+
