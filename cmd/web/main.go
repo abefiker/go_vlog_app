@@ -3,18 +3,21 @@ package main
 import (
 	"database/sql"
 	"flag"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
+
 	"github.com/abefiker/go_vlog_app/internal/models"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 // the folowing application struct purpose is for dependency injection
 type application struct {
-	errorLog *log.Logger
-	infoLog  *log.Logger
-	vlogs *models.VlogModel
+	errorLog      *log.Logger
+	infoLog       *log.Logger
+	vlogs         *models.VlogModel
+	templateCache map[string]*template.Template
 }
 
 func main() {
@@ -34,10 +37,16 @@ func main() {
 	// before the main() function exits.
 	defer db.Close()
 
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+
 	app := application{
 		errorLog: errorLog,
 		infoLog:  infoLog,
-		vlogs: &models.VlogModel{DB: db},
+		vlogs:    &models.VlogModel{DB: db},
+		templateCache: templateCache,
 	}
 
 	srv := http.Server{

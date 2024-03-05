@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 
@@ -23,23 +22,10 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	// for _, vlog := range vlogs {
 	// 	fmt.Fprintf(w, "%+v\n", vlog)
 	// }
-	files := []string{
-		"./ui/html/base.html",
-		"./ui/html/partials/nav.html",
-		"./ui/html/pages/home.html",
-	}
-	ts, err := template.ParseFiles(files...)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-	data := &templateData{
+	app.render(w, http.StatusOK, "home.html", &templateData{
 		Vlogs: vlogs,
-	}
-	err = ts.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		app.serverError(w, err)
-	}
+	})
+		
 }
 func (app *application) vlogView(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
@@ -57,23 +43,10 @@ func (app *application) vlogView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	files := []string{
-		"./ui/html/base.html",
-		"./ui/html/partials/nav.html",
-		"./ui/html/pages/view.html",
-	}
-	ts, err := template.ParseFiles(files...)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-	data := &templateData{
+	app.render(w, http.StatusOK, "view.html", &templateData{
 		Vlog: vlog,
-	}
-	err = ts.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		app.serverError(w, err)
-	}
+		})
+		
 
 }
 func (app *application) vlogCreate(w http.ResponseWriter, r *http.Request) {
