@@ -1,9 +1,13 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
 
-//the route() method returns servermux containing our application routes
-func (app *application) routes() http.Handler{
+	"github.com/justinas/alice"
+)
+
+// the route() method returns servermux containing our application routes
+func (app *application) routes() http.Handler {
 	mux := http.NewServeMux()
 	fileServer := http.FileServer(http.Dir("./ui//static/"))
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
@@ -13,5 +17,7 @@ func (app *application) routes() http.Handler{
 	mux.HandleFunc("/vlog/create", app.vlogCreate)
 	mux.HandleFunc("/vlog/update", app.vlogUpdate)
 	mux.HandleFunc("/vlog/delete", app.vlogDelete)
-	return app.logRequest(secureHeaders(mux)) 
+	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
+	// Return the 'standard' middleware chain followed by the servemux.
+	return standard.Then(mux)
 }
