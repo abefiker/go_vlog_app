@@ -1,0 +1,22 @@
+{{define "title"}}Create a New Vlog{{end}}
+
+{{define "main"}}
+<form action='/vlog/create' method='POST' enctype="multipart/form-data">
+    <div>
+        <label for="title">Title:</label>
+        <input type='text' id="title" name='title' required>
+    </div>
+    <div>
+        <label for="description">Description:</label>
+        <textarea id="description" name='description' required></textarea>
+    </div>
+    <div>
+        <label for="photoFile">Photo File:</label>
+        <input type="file" id="photoFile" name='photoFile' accept="image/*">
+    </div>
+    <input type='hidden' name='user_id' value='1'>
+    <div>
+        <input type='submit' value='Publish Vlog'>
+    </div>
+</form>
+{{end}}

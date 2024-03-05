@@ -3,7 +3,9 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/abefiker/go_vlog_app/internal/models"
@@ -45,28 +47,57 @@ func (app *application) vlogView(w http.ResponseWriter, r *http.Request) {
 
 }
 func (app *application) vlogCreate(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Display the form for creating a new snippet..."))
-	}
-	
+	data := app.newTemplateData(r)
+	app.render(w, http.StatusOK, "create.html", data)
+
+}
+
 func (app *application) vlogCreatePost(w http.ResponseWriter, r *http.Request) {
-	
+	// Make sure you parse the form including the file upload
+	err := r.ParseMultipartForm(10 << 20) // For example, 10 MB limit
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
 
-	// Assuming a form field "fileType" is sent specifying whether it's a video or image
-	user_id := 1
-	title := "I've played Mafia game"
-	description := "It's interesting and funny game, beside logics and reasoning also some human behavior will be revealed. However, if you don't control yourself you would waste too much time, so that is the bad side of it."
-	photoFile := "love.jpg"
-	views := 0
-	likes := 0
-	id, err := app.vlogs.Insert(user_id, title, description, photoFile, views, likes)
+	title := r.FormValue("title")
+	description := r.FormValue("description")
+	user_id := 1 // This could also be fetched from session or context if needed
 
+	// Handle file upload
+	file, header, err := r.FormFile("photoFile")
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	defer file.Close()
+
+	// Create a unique file name for the uploaded file
+	// For simplicity, just using the original filename here. Consider generating a unique name.
+	// Ensure your application saves the file in an appropriate directory with proper permissions
+	photoFileName := header.Filename
+	filePath := "./uploaded_images/" + photoFileName
+	out, err := os.Create(filePath)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, file)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// Insert the vlog details into the database
+	id, err := app.vlogs.Insert(user_id, title, description, photoFileName, 0, 0)
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("/vlog/view?id=%d", id), http.StatusSeeOther)
-	// Call the uploadFile function with the appropriate file type
 }
 
 func (app *application) vlogUpdate(w http.ResponseWriter, r *http.Request) {

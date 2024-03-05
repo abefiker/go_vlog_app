@@ -11,8 +11,8 @@ import (
 func (app *application) routes() http.Handler {
 	// mux := http.NewServeMux()
 	router := httprouter.New()
-	fileServer := http.FileServer(http.Dir("./ui//static/"))
-	router.Handler(http.MethodGet,"/static/", http.StripPrefix("/static", fileServer))
+	fileServer := http.FileServer(http.Dir("./ui/static/"))
+	router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fileServer))
 
 	router.HandlerFunc(http.MethodGet,"/", app.home)
 	router.HandlerFunc(http.MethodGet,"/vlog/view/:id", app.vlogView)
