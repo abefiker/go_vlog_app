@@ -22,10 +22,11 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	// for _, vlog := range vlogs {
 	// 	fmt.Fprintf(w, "%+v\n", vlog)
 	// }
-	app.render(w, http.StatusOK, "home.html", &templateData{
-		Vlogs: vlogs,
-	})
-		
+	data := app.newTemplateData(r)
+	data.Vlogs = vlogs
+	// Pass the data to the render() helper as normal.
+	app.render(w, http.StatusOK, "home.html", data)
+
 }
 func (app *application) vlogView(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
@@ -42,11 +43,9 @@ func (app *application) vlogView(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	app.render(w, http.StatusOK, "view.html", &templateData{
-		Vlog: vlog,
-		})
-		
+	data := app.newTemplateData(r)
+	data.Vlog = vlog
+	app.render(w, http.StatusOK, "view.html",data)
 
 }
 func (app *application) vlogCreate(w http.ResponseWriter, r *http.Request) {
