@@ -45,10 +45,9 @@ func (app *application) vlogView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	flash := app.sessionManager.PopString(r.Context(), "flash")
 	data := app.newTemplateData(r)
 	data.Vlog = vlog
-	data.Flash = flash
+
 	app.render(w, http.StatusOK, "view.html", data)
 
 }
