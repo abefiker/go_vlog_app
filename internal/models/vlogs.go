@@ -12,7 +12,6 @@ type Vlog struct {
 	UserID      int       `db:"user_id"`
 	Title       string    `db:"title"`
 	Description string    `db:"description"`
-	VideoFile   string    `db:"video_file"`
 	PhotoFile   string    `db:"photo_file"`
 	Views       int       `db:"views"`
 	Likes       int       `db:"likes"`

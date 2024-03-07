@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -73,7 +74,9 @@ func (app *application) vlogCreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer file.Close()
+
 	fieldErrors := make(map[string]string)
+
 	// Check that the title value is not blank and is not more than 100
 	// characters long. If it fails either of those checks, add a message to the
 	// errors map using the field name as the key.
@@ -82,37 +85,66 @@ func (app *application) vlogCreatePost(w http.ResponseWriter, r *http.Request) {
 	} else if utf8.RuneCountInString(title) > 100 {
 		fieldErrors["title"] = "This field cannot be more than 100 characters long"
 	}
-	// Check that the Content value isn't blank.
+
+	// Check that the description value isn't blank.
 	if strings.TrimSpace(description) == "" {
 		fieldErrors["description"] = "This field cannot be blank"
 	}
-	if header.Size == 0 {
-		fieldErrors["file"] = "This field cannot be blank"
-		// Optionally handle the error or return a response to the user
-		return
-	}
-	
 
-	// Create a unique file name for the uploaded file
-	// For simplicity, just using the original filename here. Consider generating a unique name.
-	// Ensure your application saves the file in an appropriate directory with proper permissions
-	photoFileName := header.Filename
-	filePath := "./ui/static/img/" + photoFileName
-	out, err := os.Create(filePath)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-	defer out.Close()
+	// Check if a file is uploaded
+	if header.Filename == "" {
+		fieldErrors["file"] = "No file uploaded"
+	} else {
+		// Create a unique file name for the uploaded file
+		// For simplicity, just using the original filename here. Consider generating a unique name.
+		// Ensure your application saves the file in an appropriate directory with proper permissions
+		photoFileName := header.Filename
+		filePath := "./ui/static/img/" + photoFileName
 
-	_, err = io.Copy(out, file)
-	if err != nil {
-		app.serverError(w, err)
+		// Check file size
+		if header.Size == 0 {
+			fieldErrors["file"] = "Uploaded file is empty"
+		}
+
+		// Check file type if needed
+		// For example:
+		// if !strings.HasSuffix(header.Filename, ".jpg") && !strings.HasSuffix(header.Filename, ".jpeg") {
+		// 	fieldErrors["file"] = "Invalid file type. Only JPG/JPEG files are allowed"
+		// }
+
+		if len(fieldErrors) == 0 {
+			out, err := os.Create(filePath)
+			if err != nil {
+				app.serverError(w, err)
+				return
+			}
+			defer out.Close()
+
+			_, err = io.Copy(out, file)
+			if err != nil {
+				app.serverError(w, err)
+				return
+			}
+		}
+	}
+
+	if len(fieldErrors) > 0 {
+		// Convert fieldErrors map to JSON for better formatting
+		fieldErrorsJSON, err := json.Marshal(fieldErrors)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		// Set appropriate content type for response
+		w.Header().Set("Content-Type", "application/json")
+		// Write JSON response with field errors
+		w.WriteHeader(http.StatusBadRequest) // Or appropriate HTTP status code
+		w.Write(fieldErrorsJSON)
 		return
 	}
 
 	// Insert the vlog details into the database
-	id, err := app.vlogs.Insert(user_id, title, description, photoFileName, 0, 0)
+	id, err := app.vlogs.Insert(user_id, title, description, header.Filename, 0, 0)
 	if err != nil {
 		app.serverError(w, err)
 		return
