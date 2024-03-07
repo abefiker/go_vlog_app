@@ -44,8 +44,11 @@ func (app *application) vlogView(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	flash := app.sessionManager.PopString(r.Context(), "flash")
 	data := app.newTemplateData(r)
 	data.Vlog = vlog
+	data.Flash = flash
 	app.render(w, http.StatusOK, "view.html", data)
 
 }
@@ -106,12 +109,6 @@ func (app *application) vlogCreatePost(w http.ResponseWriter, r *http.Request) {
 			fieldErrors["file"] = "Uploaded file is empty"
 		}
 
-		// Check file type if needed
-		// For example:
-		// if !strings.HasSuffix(header.Filename, ".jpg") && !strings.HasSuffix(header.Filename, ".jpeg") {
-		// 	fieldErrors["file"] = "Invalid file type. Only JPG/JPEG files are allowed"
-		// }
-
 		if len(fieldErrors) == 0 {
 			out, err := os.Create(filePath)
 			if err != nil {
@@ -149,6 +146,8 @@ func (app *application) vlogCreatePost(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
+
+	app.sessionManager.Put(r.Context(), "flash", "vlog created successfuly")
 
 	http.Redirect(w, r, fmt.Sprintf("/vlog/view/%d", id), http.StatusSeeOther)
 }

@@ -11,6 +11,7 @@ type templateData struct {
 	CurrentYear int
 	Vlog  *models.Vlog
 	Vlogs []*models.Vlog
+	Flash string
 }
 
 func newTemplateCache() (map[string]*template.Template, error) {
