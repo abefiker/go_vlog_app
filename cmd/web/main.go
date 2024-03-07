@@ -7,17 +7,21 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/abefiker/go_vlog_app/internal/models"
+	"github.com/alexedwards/scs/mysqlstore"
+	"github.com/alexedwards/scs/v2"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 // the folowing application struct purpose is for dependency injection
 type application struct {
-	errorLog      *log.Logger
-	infoLog       *log.Logger
-	vlogs         *models.VlogModel
-	templateCache map[string]*template.Template
+	errorLog       *log.Logger
+	infoLog        *log.Logger
+	vlogs          *models.VlogModel
+	templateCache  map[string]*template.Template
+	sessionManager *scs.SessionManager
 }
 
 func main() {
@@ -42,11 +46,16 @@ func main() {
 		errorLog.Fatal(err)
 	}
 
+	sessionManager := scs.New()
+	sessionManager.Store = mysqlstore.New(db)
+	sessionManager.Lifetime = 12 * time.Hour
+
 	app := application{
-		errorLog: errorLog,
-		infoLog:  infoLog,
-		vlogs:    &models.VlogModel{DB: db},
+		errorLog:      errorLog,
+		infoLog:       infoLog,
+		vlogs:         &models.VlogModel{DB: db},
 		templateCache: templateCache,
+		sessionManager: sessionManager,
 	}
 
 	srv := http.Server{

@@ -14,12 +14,14 @@ func (app *application) routes() http.Handler {
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fileServer))
 
-	router.HandlerFunc(http.MethodGet,"/", app.home)
-	router.HandlerFunc(http.MethodGet,"/vlog/view/:id", app.vlogView)
-	router.HandlerFunc(http.MethodGet,"/vlog/create", app.vlogCreate)
-	router.HandlerFunc(http.MethodPost,"/vlog/create", app.vlogCreatePost)
-	router.HandlerFunc(http.MethodPut,"/vlog/update", app.vlogUpdate)
-	router.HandlerFunc(http.MethodDelete,"/vlog/delete", app.vlogDelete)
+	dynamic := alice.New(app.sessionManager.LoadAndSave)
+
+	router.Handler(http.MethodGet,"/", dynamic.ThenFunc(app.home))
+	router.Handler(http.MethodGet,"/vlog/view/:id",dynamic.ThenFunc(app.vlogView))
+	router.Handler(http.MethodGet,"/vlog/create",dynamic.ThenFunc(app.vlogCreate))
+	router.Handler(http.MethodPost,"/vlog/create", dynamic.ThenFunc(app.vlogCreatePost))
+	router.Handler(http.MethodPut,"/vlog/update",dynamic.ThenFunc(app.vlogUpdate))
+	router.Handler(http.MethodDelete,"/vlog/delete",dynamic.ThenFunc(app.vlogDelete))
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 	// Return the 'standard' middleware chain followed by the servemux.
 	return standard.Then(router)
