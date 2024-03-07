@@ -51,10 +51,10 @@ func main() {
 	sessionManager.Lifetime = 12 * time.Hour
 
 	app := application{
-		errorLog:      errorLog,
-		infoLog:       infoLog,
-		vlogs:         &models.VlogModel{DB: db},
-		templateCache: templateCache,
+		errorLog:       errorLog,
+		infoLog:        infoLog,
+		vlogs:          &models.VlogModel{DB: db},
+		templateCache:  templateCache,
 		sessionManager: sessionManager,
 	}
 
@@ -65,8 +65,9 @@ func main() {
 	}
 
 	infoLog.Printf("Starting server on %s", *addr)
-	err = srv.ListenAndServe()
+	err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
 	errorLog.Fatal(err)
+
 }
 func openDB(dsn string) (*sql.DB, error) {
 	db, err := sql.Open("mysql", dsn)
