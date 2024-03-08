@@ -38,6 +38,20 @@ func (m *VlogModel) Insert(user_id int, title string, description string, photoF
 	}
 	return int(id), nil
 }
+func (m *VlogModel) Update(vlog_id int, title string, description string, photoFile string) error {
+	// Note: views and likes are not included in the parameters list
+	stmt := `UPDATE vlogs SET title=?, description=?, photo_file=? WHERE vlog_id=?`
+	_, err := m.DB.Exec(stmt, title, description, photoFile, vlog_id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (m *VlogModel) Delete(vlogID int) error {
+	stmt := `DELETE FROM vlogs WHERE vlog_id=?`
+	_, err := m.DB.Exec(stmt, vlogID)
+	return err
+}
 
 // This will return a specific vlog based on its id.
 func (m *VlogModel) Get(id int) (*Vlog, error) {

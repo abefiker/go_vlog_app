@@ -150,10 +150,115 @@ func (app *application) vlogCreatePost(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, fmt.Sprintf("/vlog/view/%d", id), http.StatusSeeOther)
 }
-
 func (app *application) vlogUpdate(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("update functionality"))
+	params := httprouter.ParamsFromContext(r.Context())
+	idStr := params.ByName("vlog_id") // Change "id" to "vlog_id" to match the route definition
+	// Assuming your route parameter is named "id"
+	id, err := strconv.Atoi(idStr)
+	if err != nil || id < 1 {
+		app.notFound(w)
+		return
+	}
+
+	vlog, err := app.vlogs.Get(id) // Assuming app.vlogs.GetByID fetches the vlog details by ID
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	data := app.newTemplateData(r)
+	data.Vlog = vlog // Populate the vlog details
+	app.render(w, http.StatusOK, "update.html", data)
 }
+
+func (app *application) vlogUpdatePost(w http.ResponseWriter, r *http.Request) {
+	// Get the vlog ID from the request parameters
+	params := httprouter.ParamsFromContext(r.Context())
+	idStr := params.ByName("vlog_id") // Make sure this matches your route parameter name
+	id, err := strconv.Atoi(idStr)
+	if err != nil || id < 1 {
+		app.notFound(w)
+		return
+	}
+
+	// Fetch existing vlog details in case we need to fallback to original values
+	existingVlog, err := app.vlogs.Get(id)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// Parse form data with a 10 MB limit
+	err = r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// Retrieve the updated title and description from the form, defaulting to existing values if not provided
+	newTitle := r.FormValue("title")
+	if newTitle == "" {
+		newTitle = existingVlog.Title
+	}
+
+	newDescription := r.FormValue("description")
+	if newDescription == "" {
+		newDescription = existingVlog.Description
+	}
+
+	// Initialize photoFileName with the existing photo file name
+	photoFileName := existingVlog.PhotoFile
+
+	// Process file upload if a file is provided
+	file, header, err := r.FormFile("photoFile")
+	if err == nil && header != nil { // Only proceed if a file was actually uploaded
+		defer file.Close()
+		photoFileName = header.Filename
+		filePath := "./ui/static/img/" + photoFileName
+
+		out, err := os.Create(filePath)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		defer out.Close()
+
+		_, err = io.Copy(out, file)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+	} // If an error occurred because no file was uploaded, we simply retain the existing photo file
+
+	// Update the vlog in the database
+	err = app.vlogs.Update(id, newTitle, newDescription, photoFileName)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// Redirect to the vlog view page
+	http.Redirect(w, r, fmt.Sprintf("/vlog/view/%d", id), http.StatusSeeOther)
+}
+
 func (app *application) vlogDelete(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("delete functionality"))
+    // Extract the vlog ID from the URL parameters
+    params := httprouter.ParamsFromContext(r.Context())
+    vlogIDStr := params.ByName("vlog_id")
+
+    // Validate the vlog ID
+    vlogID, err := strconv.Atoi(vlogIDStr)
+    if err != nil || vlogID < 1 {
+        app.notFound(w)
+        return
+    }
+
+    // Delete the vlog from the database
+    err = app.vlogs.Delete(vlogID)
+    if err != nil {
+        app.serverError(w, err)
+        return
+    }
+    http.Redirect(w, r, "/", http.StatusSeeOther)
 }
+

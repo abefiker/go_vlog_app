@@ -1,0 +1,29 @@
+{{define "title"}}Update Vlog{{end}}
+{{define "main"}}
+<h2>Update Vlog</h2>
+<form action='/vlog/update/{{.Vlog.VlogID}}' method='PUT' enctype="multipart/form-data">
+    <!-- Method override for PUT request -->
+    <div>
+        <label for="title">Title:</label>
+        <input type='text' id="title" name='title' value='{{.Vlog.Title}}' required>
+    </div>
+    <div>
+        <label for="description">Description:</label>
+        <textarea id="description" name='description' required>{{.Vlog.Description}}</textarea>
+    </div>
+    <div>
+        <label for="photoFile">Photo:</label>
+        <input type="file" id="photoFile" name="photoFile">
+    </div>
+    <!-- Display existing photo preview if available -->
+    {{ if ne .Vlog.PhotoFile "" }}
+    <div>
+        <img src='/static/img/{{.Vlog.PhotoFile}}' alt='Current Vlog Image' class='current-vlog-image'>
+    </div>
+    {{ end }}
+    <div>
+        <input type='submit' value='Update Vlog'>
+    </div>
+</form>
+{{end}}
+
